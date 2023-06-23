@@ -16,6 +16,7 @@ builder.Services.AddScoped<IUploadService, UploadService>();
 builder.Services.AddScoped<IOrganizationService, OrganizationService>();
 builder.Services.AddScoped<IResultBuilder, ResultBuilder>();
 builder.Services.AddScoped<ITableService, TableService>();
+builder.Services.AddScoped<IErrorService, ErrorService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
