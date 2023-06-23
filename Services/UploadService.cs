@@ -14,17 +14,17 @@ namespace StarkovTestApp.Services
         private readonly DbLayerContext _dbLayerContext;
         private readonly IValidateService _validateService;
         private readonly ILinkService _linkService;
-        private List<String> _messageCollector;
         public UploadService(DbLayerContext dbLayerContext, IValidateService validateService, ILinkService linkService)
         {
             _dbLayerContext = dbLayerContext;
             _validateService = validateService;
             _linkService = linkService;
-            _messageCollector = new List<String>();
         }
 
-        public void UploadEmployees(string file)
+        public string UploadEmployees(string file)
         {
+            Logger.Instance.Clear();
+
             var employees = new Dictionary<string, Employee>();
             var csvReader = new CsvReader(file, new CsvFileParser('\t'), new DataTypeService());
 
@@ -44,22 +44,13 @@ namespace StarkovTestApp.Services
                     employee.Login = rowArray[2];
                     employee.Password = rowArray[3];
                     employee.JobDescription = StandartizeString(rowArray[4]);
+                    employee.NotValid = false;
 
                     if (!_validateService.IsValid(employee))
                     {
-                        _messageCollector.Add($"Пользователь {employee.Fullname} не будет добавлен");
+                        Logger.Instance.Log($"Пользователь {employee.Fullname} не будет добавлен");
                         continue;
                     }
-
-                    employee.DepartmentID = _dbLayerContext.Departments
-                        .Where(dep => dep.Name.Equals(employee.DepartmentName))?
-                        .Select(dep => dep.ID)
-                        .SingleOrDefault() ?? 0;
-
-                    employee.JobTitle = _dbLayerContext.JobTitles
-                        .Where(jt => jt.Name.Equals(employee.JobDescription))?
-                        .Select(jt => jt.ID)
-                        .SingleOrDefault() ?? 0;
 
                     employees.Add(fullname, employee);
                 }
@@ -68,15 +59,17 @@ namespace StarkovTestApp.Services
             _dbLayerContext.UpdateRange(employees.Values);
             _dbLayerContext.SaveChanges();
 
-            _messageCollector.Add($"Успешно добавлено/изменено {employees.Values.Count} пользователей");
+            Logger.Instance.Log($"Успешно добавлено/изменено {employees.Values.Count} пользователей");
 
-            _linkService.UpdateManagerLink();
-            _linkService.UpdateDepartmentLink();
-            _linkService.UpdateJobTitleLink();
+            _linkService.UpdateEmployeesTable();
+
+            return Logger.Instance.GetLog();
         }
 
-        public void UploadDepartments(string file)
+        public string UploadDepartments(string file)
         {
+            Logger.Instance.Clear();
+
             var departments = new Dictionary<(string, string), Department>();
             var csvReader = new CsvReader(file, new CsvFileParser('\t'), new DataTypeService());
 
@@ -96,18 +89,15 @@ namespace StarkovTestApp.Services
                     department.Name = name;
                     department.ParentName = parentName;
                     department.ManagerName = StandartizeString(rowArray[2]);
-                    department.Phone = StandartizeString(rowArray[3]);
+                    department.Phone = StandartizePhoneNumber(rowArray[3]) ?? String.Empty;
+
+                    department.NotValid = department.Phone == String.Empty;
 
                     if (!_validateService.IsValid(department))
                     {
-                        _messageCollector.Add($"Департамент {department.Name} не был добавлен");
+                        Logger.Instance.Log($"Департамент {department.Name} не был добавлен");
                         continue;
                     }
-
-                    department.ManagerID = _dbLayerContext.Employees
-                        .Where(pers => pers.Fullname.Equals(department.ManagerName))?
-                        .Select(pers => pers.ID)
-                        .SingleOrDefault() ?? 0;
 
                     departments.Add((name, parentName), department);
                 }
@@ -116,13 +106,17 @@ namespace StarkovTestApp.Services
             _dbLayerContext.Departments.UpdateRange(departments.Values);
             _dbLayerContext.SaveChanges();
 
-            _linkService.UpdateDepartmentLink();
-            _linkService.UpdateManagerLink();
-            _linkService.UpdateInnerDepartmentLink();
+            Logger.Instance.Log($"Успешно добавлено/изменено {departments.Values.Count} отделов");
+
+            _linkService.UpdateDepartmentTable();
+
+            return Logger.Instance.GetLog();
         }
 
-        public void UploadJobTitles(string file)
+        public string UploadJobTitles(string file)
         {
+            Logger.Instance.Clear();
+
             var jobTitles = new Dictionary<string, JobTitle>();
             var csvReader = new CsvReader(file, new CsvFileParser('\t'), new DataTypeService());
 
@@ -144,7 +138,7 @@ namespace StarkovTestApp.Services
 
                     if (!_validateService.IsValid(jobTitle))
                     {
-                        _messageCollector.Add($"Должность {jobTitle.Name} не была добавлена");
+                        Logger.Instance.Log($"Должность {jobTitle.Name} не была добавлена");
                         continue;
                     }
 
@@ -155,12 +149,27 @@ namespace StarkovTestApp.Services
             _dbLayerContext.JobTitles.UpdateRange(jobTitles.Values);
             _dbLayerContext.SaveChanges();
 
-            _linkService.UpdateJobTitleLink();
+            Logger.Instance.Log($"Добавлено {jobTitles.Values.Count} должностей");
+
+            _linkService.UpdateJobTitlesTable();
+
+            return Logger.Instance.GetLog();
         }
 
         private string StandartizeString(string str)
         {
              return Regex.Replace(new CultureInfo("ru-RU").TextInfo.ToTitleCase(str.Trim()), @"\s+", " ");
+        }
+
+        private string StandartizePhoneNumber(string str)
+        {
+            str = Regex.Replace(str, @"[^\d]", "");
+            str = Regex.Replace(str, "^8", "7");
+
+            if (str.Length > 11) return null;
+
+            str = Regex.Replace(str, @"(\d{1})(\d{3})(\d{3})(\d{2})(\d{2})", "+$1 ($2) $3-$4-$5");
+            return str;
         }
     }
 }

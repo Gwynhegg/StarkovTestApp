@@ -2,9 +2,9 @@
 {
     public interface IUploadService
     {
-        void UploadEmployees(string file);
-        void UploadDepartments(string file);
-        void UploadJobTitles(string file);
+        string UploadEmployees(string file);
+        string UploadDepartments(string file);
+        string UploadJobTitles(string file);
 
     }
 }

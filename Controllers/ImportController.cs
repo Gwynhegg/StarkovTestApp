@@ -1,4 +1,5 @@
-﻿using CsvFileReader;
+﻿using System.Runtime.InteropServices.ComTypes;
+using CsvFileReader;
 using CsvFileReader.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,16 +20,18 @@ namespace StarkovTestApp.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadFile(Consts.ContentTypes fileType, string filePath)
+        public async Task<string> UploadFile(Consts.ContentTypes fileType, string filePath)
         {
+            var result = String.Empty;
+
             switch (fileType)
             {
-                case Consts.ContentTypes.Employee: _uploadService.UploadEmployees(filePath); break;
-                case Consts.ContentTypes.Department: _uploadService.UploadDepartments(filePath); break;
-                case Consts.ContentTypes.JobTitle: _uploadService.UploadJobTitles(filePath); break;
+                case Consts.ContentTypes.Employee: result = _uploadService.UploadEmployees(filePath); break;
+                case Consts.ContentTypes.Department: result = _uploadService.UploadDepartments(filePath); break;
+                case Consts.ContentTypes.JobTitle: result = _uploadService.UploadJobTitles(filePath); break;
             }
             
-            return await Task.FromResult(Ok());
+            return await Task.FromResult(result);
         }
     }
 }

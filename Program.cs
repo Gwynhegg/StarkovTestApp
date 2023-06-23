@@ -13,6 +13,9 @@ builder.Services.AddDbContext<DbLayerContext>(ServiceLifetime.Scoped);
 builder.Services.AddScoped<ILinkService, LinkService>();
 builder.Services.AddScoped<IValidateService, ValidateService>();
 builder.Services.AddScoped<IUploadService, UploadService>();
+builder.Services.AddScoped<IOrganizationService, OrganizationService>();
+builder.Services.AddScoped<IResultBuilder, ResultBuilder>();
+builder.Services.AddScoped<ITableService, TableService>();
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -30,6 +33,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 //app.UseAuthorization();

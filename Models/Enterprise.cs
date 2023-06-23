@@ -1,7 +1,9 @@
-﻿namespace StarkovTestApp.Models
+﻿using StarkovTestApp.Models.Extensions;
+
+namespace StarkovTestApp.Models
 {
     public class Enterprise
     {
-        public List<Department> Departments;
+        public List<DepartmentExtension?> Departments = new();
     }
 }

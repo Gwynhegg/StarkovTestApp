@@ -1,4 +1,7 @@
-﻿using StarkovTestApp.DbLayer;
+﻿using System.Data;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
+using StarkovTestApp.DbLayer;
 using StarkovTestApp.Services.Interfaces;
 
 namespace StarkovTestApp.Services
@@ -10,62 +13,41 @@ namespace StarkovTestApp.Services
         public LinkService(DbLayerContext dbLayerContext)
         {
             _dbLayerContext = dbLayerContext;
-        }
-        public void UpdateManagerLink()
-        {
-            var departmentList = _dbLayerContext.Departments.ToList();
 
-            foreach (var department in departmentList)
-                department.ManagerID =
-                    _dbLayerContext.Employees
-                        .Where(pers => pers.Fullname.Equals(department.ManagerName))?
-                        .Select(pers => pers.ID)
-                        .SingleOrDefault() ?? 0;
-
-            _dbLayerContext.UpdateRange(departmentList);
-            _dbLayerContext.SaveChanges();
         }
 
-        public void UpdateDepartmentLink()
+        public void UpdateDepartmentTable()
         {
-            var employeeList = _dbLayerContext.Employees.ToList();
-
-            foreach (var employee in employeeList)
-                employee.DepartmentID = _dbLayerContext.Departments
-                    .Where(dep => dep.Name.Equals(employee.DepartmentName))?
-                    .Select(dep => dep.ID)
-                    .SingleOrDefault() ?? 0;
-
-            _dbLayerContext.UpdateRange(employeeList);
-            _dbLayerContext.SaveChanges();
+            ExecuteQuery(Consts.StoredProcedures.UPDATE_MANAGERS_IDS,
+                Consts.StoredProcedures.UPDATE_DEP_IDS,
+                Consts.StoredProcedures.UPDATE_INNER_DEP_IDS);
         }
 
-        public void UpdateJobTitleLink()
+        public void UpdateEmployeesTable()
         {
-            var employeeList = _dbLayerContext.Employees.ToList();
-
-            foreach (var employee in employeeList)
-                employee.JobTitle = _dbLayerContext.JobTitles
-                    .Where(jt => jt.Name.Equals(employee.JobDescription))?
-                    .Select(jt => jt.ID)
-                    .SingleOrDefault() ?? 0;
-
-            _dbLayerContext.UpdateRange(employeeList);
-            _dbLayerContext.SaveChanges();
+            ExecuteQuery(Consts.StoredProcedures.UPDATE_JOB_TITLES,
+                Consts.StoredProcedures.UPDATE_DEP_IDS,
+                Consts.StoredProcedures.UPDATE_MANAGERS_IDS);
         }
 
-        public void UpdateInnerDepartmentLink()
+        public void UpdateJobTitlesTable()
         {
-            var departmentList = _dbLayerContext.Departments.ToList();
+            ExecuteQuery(Consts.StoredProcedures.UPDATE_JOB_TITLES);
+        }
 
-            foreach (var department in departmentList)
-                department.ParentID = departmentList
-                    .Where(dep => dep.Name.Equals(department.ParentName))?
-                    .Select(dep => dep.ID)
-                    .SingleOrDefault() ?? 0;
+        private void ExecuteQuery(params string[] queries)
+        {
+            using (var conn = new NpgsqlConnection(_dbLayerContext.Database.GetConnectionString()))
+            {
+                conn.OpenAsync();
 
-            _dbLayerContext.UpdateRange(departmentList);
-            _dbLayerContext.SaveChanges();
+                foreach (var query in queries)
+                {
+                    var command = new NpgsqlCommand(query, conn);
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

@@ -2,9 +2,8 @@
 {
     public interface ILinkService
     {
-        void UpdateManagerLink();
-        void UpdateDepartmentLink();
-        void UpdateJobTitleLink();
-        void UpdateInnerDepartmentLink();
+        void UpdateDepartmentTable();
+        void UpdateEmployeesTable();
+        void UpdateJobTitlesTable();
     }
 }

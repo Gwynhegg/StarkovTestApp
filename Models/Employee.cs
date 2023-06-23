@@ -10,5 +10,6 @@
         public string Password { get; set; }
         public int JobTitle { get; set; }
         public string JobDescription { get; set; }
+        public bool NotValid { get; set; }
     }
 }
