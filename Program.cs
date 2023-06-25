@@ -8,8 +8,10 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
+// регистрируем DbContext
 builder.Services.AddDbContext<DbLayerContext>(ServiceLifetime.Scoped);
 
+// регистрируем сервисы
 builder.Services.AddScoped<ILinkService, LinkService>();
 builder.Services.AddScoped<IValidateService, ValidateService>();
 builder.Services.AddScoped<IUploadService, UploadService>();

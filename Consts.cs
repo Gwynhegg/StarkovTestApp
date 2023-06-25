@@ -2,6 +2,9 @@
 {
     public static class Consts
     {
+        /// <summary>
+        /// Перечисление возможных типов загружаемых таблиц
+        /// </summary>
         public enum ContentTypes
         {
             Employee,
@@ -9,6 +12,9 @@
             JobTitle
         }
 
+        /// <summary>
+        /// Список хранимых процедур, вызываемых программой
+        /// </summary>
         public static class StoredProcedures
         {
             public const string UPDATE_INNER_DEP_IDS = "updateinnerdepid";

@@ -1,6 +1,9 @@
 ﻿
 namespace StarkovTestApp.Services
 {
+    /// <summary>
+    /// Синглтон-логгер для вывода информации об операциях
+    /// </summary>
     public class Logger
     {
         private static Logger _instance;

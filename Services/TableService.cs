@@ -5,6 +5,9 @@ using StarkovTestApp.Services.Interfaces;
 
 namespace StarkovTestApp.Services
 {
+    /// <summary>
+    /// Сервис для вывода информации о таблицах
+    /// </summary>
     public class TableService : ITableService
     {
         private readonly DbLayerContext _dbLayerContext;
@@ -14,10 +17,17 @@ namespace StarkovTestApp.Services
             _dbLayerContext = dbLayerContext;
         }
 
+        /// <summary>
+        /// Метод для формирования Json-файла на основании структуры таблицы
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         public string ExportTable<T>() where T : class
         {
+            // устанавливаем нужную таблицу
             var dbSet = _dbLayerContext.Set<T>();
 
+            // поднимаем все сущности
             var entities = dbSet.ToList();
 
             JsonSerializerOptions options = new JsonSerializerOptions
@@ -26,6 +36,7 @@ namespace StarkovTestApp.Services
                 WriteIndented = true
             };
 
+            // сериализуем
             return JsonSerializer.Serialize(entities, options);
         }
     }

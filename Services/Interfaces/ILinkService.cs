@@ -2,8 +2,6 @@
 {
     public interface ILinkService
     {
-        void UpdateDepartmentTable();
-        void UpdateEmployeesTable();
-        void UpdateJobTitlesTable();
+        void UpdateTables(Consts.ContentTypes type);
     }
 }
