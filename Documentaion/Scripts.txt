@@ -157,7 +157,7 @@ BEGIN
 	update "Employees"
 	set "NotValid" = true
 	where "JobTitle" = 0 and
-	(SELECT EXISTS (select * from "Employees") limit 1);
+	(SELECT EXISTS (select * from "JobTitles") limit 1);
 END; 
 $BODY$;
 ALTER PROCEDURE public.updatejobtitles()
